@@ -118,12 +118,33 @@ namespace Practice4
             var Products = (ProductsRepository)allTables[0];
             var Sales = (SalesRepository)allTables[1];
             var Purchases = (PurchasesRepository)allTables[2];
-            var ProductsWithoutPurchasesOrSales = Sales.AllSales.Join(Purchases.AllPurchases, s=>s.ProductId, pu=>pu.ProductId,
-                (s, pu) => new 
+            var ProductsWithoutPurchasesOrSales = Products.AllProducts.GroupJoin(Purchases.AllPurchases, p => p.Id, pu => pu.ProductId,
+                (p, purchasesGroup) => new
                 {
-                    pu.ProductId,
+                    p.Id,
+                    p.Name,
+                    ProductsPurchased = purchasesGroup.Count()
 
                 })
+                .GroupJoin(Sales.AllSales, p => p.Id, s=>s.ProductId,
+                (p, salesGroup) => new
+                {
+                    p.Id,
+                    p.Name,
+                    p.ProductsPurchased,
+                    ProductsSold = salesGroup.Count()
+                })
+                .Where(p => p.ProductsPurchased==0 && p.ProductsSold==0)
+                .Select(p => $"ID: {p.Id}, Name: {p.Name}");
+
+            Console.WriteLine("Products with no sales or purchases:");
+            Console.WriteLine(string.Join(Environment.NewLine, ProductsWithoutPurchasesOrSales));
+        }
+        public void GetSumOfProductsSold()
+        {
+            var Sales = (SalesRepository)allTables[1];
+            var SumOfProductsSold = Sales.AllSales.Sum(s=>s.Total);
+            Console.WriteLine($"Sum of all sales in the month: {SumOfProductsSold}");
         }
     }
 }
