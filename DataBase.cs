@@ -9,7 +9,10 @@ namespace Practice4
 {
     public class DataBase
     {
-        List<IRepository> allTables = new List<IRepository>();
+        // List<IRepository> allTables = new List<IRepository>();
+        List<Product> products = new List<Product>();
+        List<Sale> sales = new List<Sale>();
+        List<Purchase> purchases = new List<Purchase>();
         public void ReadFromDataBase(string connectionString)
         {
            
@@ -34,54 +37,49 @@ namespace Practice4
                 }
             }
 
-            allTables.Add(productsRepository);
-            allTables.Add(salesRepository);
-            allTables.Add(purchasesRepository);
+            products = productsRepository.AllProducts;
+            sales = salesRepository.AllSales;
+            purchases = purchasesRepository.AllPurchases;
 
         }
 
         public void ReadDataFromProductsTable()
         {
             Console.WriteLine("****PRODUCTS*****");
-            var Products = (ProductsRepository)allTables[0];
-            var ProductsAsStrings = Products.AllProducts.Select(p => $"ID:\t{p.Id}\nName:\t{p.Name}\nCost:\t{p.Cost}\n");
+            var ProductsAsStrings = products.Select(p => $"ID:\t{p.Id}\nName:\t{p.Name}\nCost:\t{p.Cost}\n");
             Console.WriteLine(string.Join(Environment.NewLine, ProductsAsStrings));
         }
 
         public void CreateNewProduct()
         {
-            var Products = (ProductsRepository)allTables[0];
             Console.Write("Product name: ");
             var name = Console.ReadLine();
             Console.Write("Product cost: ");
             var cost = Convert.ToDecimal(Console.ReadLine());
 
-            var id = Products.AllProducts.Count();
+            var id = products.Count();
             id++;
 
-            Products.AllProducts.Add(new Product(id, name, cost));
+            products.Add(new Product(id, name, cost));
 
             Console.WriteLine("New product created successfully.");
         }
         
         public void FilterProducts(string name)
         {
-            var Products = (ProductsRepository)allTables[0];
-            var ProductsAsStrings = Products.AllProducts.Where(p => p.Name == name)
+            var ProductsAsStrings = products.Where(p => p.Name == name)
                                                         .Select(p => $"ID:\t{p.Id}\nName:\t{p.Name}\nCost:\t{p.Cost}\n");
             Console.WriteLine(string.Join(Environment.NewLine, ProductsAsStrings)); ;
         }
         public void FilterProducts(int id)
         {
-            var Products = (ProductsRepository)allTables[0];
-            var ProductsAsStrings = Products.AllProducts.Where(p => p.Id == id)
+            var ProductsAsStrings = products.Where(p => p.Id == id)
                                                         .Select(p => $"ID:\t{p.Id}\nName:\t{p.Name}\nCost:\t{p.Cost}\n");
             Console.WriteLine(string.Join(Environment.NewLine, ProductsAsStrings)); 
         }
         public void GroupAndSortSales()
         {
-            var Sales = (SalesRepository)allTables[1];
-            var SalesGroups = Sales.AllSales.GroupBy(s => s.Date)
+            var SalesGroups = sales.GroupBy(s => s.Date)
                                             .OrderBy(s => s.Count());
             foreach (var group in SalesGroups) 
             {
@@ -95,9 +93,23 @@ namespace Practice4
 
         public void GetProductAndSalesInformation()
         {
-            var Products = (ProductsRepository)allTables[0];
-            var Sales = (SalesRepository)allTables[1];
-            var ProductAndSalesInfo = Products.AllProducts.Join(Sales.AllSales, p => p.Id, s => s.ProductId,
+            //var Products = (ProductsRepository)allTables[0];
+            //var Sales = (SalesRepository)allTables[1];
+            
+            //LINQ TO SQL 
+            //var test = from p in Products.AllProducts
+            //           join s in Sales.AllSales on p.Id equals s.ProductId
+            //           select new
+            //           {
+            //               s.OrderId,
+            //               s.ProductId,
+            //               s.Date,
+            //               IndividualCost = p.Cost,
+            //               TotalCost = s.Total
+            //           };
+
+            //LINQ TO OBJECT
+            var ProductAndSalesInfo = products.Join(sales, p => p.Id, s => s.ProductId,
                 (p, s) => new
                 {
                     s.OrderId,
@@ -115,10 +127,7 @@ namespace Practice4
         }
         public void GetProductsWithoutPurchasesOrSales()
         {
-            var Products = (ProductsRepository)allTables[0];
-            var Sales = (SalesRepository)allTables[1];
-            var Purchases = (PurchasesRepository)allTables[2];
-            var ProductsWithoutPurchasesOrSales = Products.AllProducts.GroupJoin(Purchases.AllPurchases, p => p.Id, pu => pu.ProductId,
+            var ProductsWithoutPurchasesOrSales = products.GroupJoin(purchases, p => p.Id, pu => pu.ProductId,
                 (p, purchasesGroup) => new
                 {
                     p.Id,
@@ -126,7 +135,7 @@ namespace Practice4
                     ProductsPurchased = purchasesGroup.Count()
 
                 })
-                .GroupJoin(Sales.AllSales, p => p.Id, s=>s.ProductId,
+                .GroupJoin(sales, p => p.Id, s=>s.ProductId,
                 (p, salesGroup) => new
                 {
                     p.Id,
@@ -142,8 +151,7 @@ namespace Practice4
         }
         public void GetSumOfProductsSold()
         {
-            var Sales = (SalesRepository)allTables[1];
-            var SumOfProductsSold = Sales.AllSales.Sum(s=>s.Total);
+            var SumOfProductsSold = sales.Sum(s=>s.Total);
             Console.WriteLine($"Sum of all sales in the month: {SumOfProductsSold}");
         }
     }

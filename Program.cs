@@ -18,13 +18,6 @@ namespace Practice4
 
             DataBase db = new DataBase();
             db.ReadFromDataBase(connectionString);
-            //db.ReadDataFromProductsTable();
-            //db.CreateNewProduct();
-            //db.FilterProducts("Chair");
-            //db.GroupAndSortSales();
-
-            //db.GetProductAndSalesInformation();
-            //db.GetProductsWithoutPurchasesOrSales();
             
             while(true)
             { 

@@ -24,14 +24,12 @@ namespace Practice4
             SqlCommand command = new(queryString, connection);
 
             SqlDataReader reader = command.ExecuteReader();
-            var products = new List<Product>();
             while (reader.Read())
             {
-                products.Add(new Product((int)reader[0], (string)reader[1], (decimal)reader[2]));
+                AllProducts.Add(new Product((int)reader[0], (string)reader[1], (decimal)reader[2]));
             }
 
             reader.Close();
-            AllProducts = products;
         }
         
     }
